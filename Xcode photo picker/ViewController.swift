@@ -168,6 +168,15 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             UIGraphicsPopContext()
             
             CVPixelBufferUnlockBaseAddress(pixelBuffer!, CVPixelBufferLockFlags(rawValue: 0))
+            
+            // MARK: - Predict Image Delgate Method for Core ML
+            
+            guard let prediction = try? model.prediction(image: pixelBuffer!) else {
+                classifier.text = "Can't Predict!"
+                return
+            }
+            classifier.text = "This is probably \(prediction.classLabel)."
+            
         }
          
         // 5. Method called when user cancels the picker
