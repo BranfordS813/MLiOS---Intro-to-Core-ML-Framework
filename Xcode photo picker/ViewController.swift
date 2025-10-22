@@ -7,9 +7,15 @@
 
 import UIKit
 
+// import CoreML Model
+import CoreML
+
+// import CoreVideo (for image resizing)
+import CoreVideo
+
 class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
-    // MARK: BOutlets
+    // MARK: IBOutlets
     // This is the IBOutlet that connects the label to your code
     @IBOutlet weak var MultiLineLabel1: UILabel!
     // Lets create a nother IBOutlet that connects a second label to code
@@ -19,6 +25,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     // Show selected Photos
     @IBOutlet weak var UI_Image_View: UIImageView!
     // Action - Button tapped --> Select Photo
+    
+    // Classifer UILabel
+    @IBOutlet weak var classifier: UILabel!
     
     
 //    // Previous Attempt:
@@ -36,7 +45,36 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 //    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
 //        self.dismiss(animated: true, completion: nil)
 //    }
+    
+//    // MARK: - Declare model variable for Core ML model
 //    
+//    var model: MobileNetV2
+////
+//    // MARK: - Override viewWillAppear() method (older verison?)
+//    override func viewWillAppear(_ animated: Bool){
+//        model = MobileNetV2()
+//    }
+////
+    // MARK: - Apply Lazy Initialization for Core ML model
+    // MARK: - Declare model variable for Core ML model
+    // Use 'lazy var' for proper initialization
+    lazy var model: MobileNetV2 = {
+        do {
+            // Use the common initializer for Core ML models, which often throws an error.
+            // Assuming MobileNetV2 is the name of your Core ML model class.
+            return try MobileNetV2(configuration: MLModelConfiguration())
+        } catch {
+            // If the model fails to load, the app can't run the ML part, so it's a fatal error.
+            fatalError("Failed to load MobileNetV2 model: \(error)")
+        }
+    }()
+
+    // MARK: - Override viewWillAppear() method (Remove the model assignment)
+    override func viewWillAppear(_ animated: Bool){
+        super.viewWillAppear(animated) // Always call super for life-cycle methods
+        // model = MobileNetV2() <-- REMOVE THIS LINE
+    }
+    
     // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -83,6 +121,53 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             
             // 4. Dismiss the picker
             picker.dismiss(animated: true)
+            
+            // MARK: - For Core ML model, resize image to 224x 224 pixels
+            
+            // Resize image to 224 x 224 pixels
+            UIGraphicsBeginImageContextWithOptions (CGSize(width: 224, height: 224), true, 2.0)
+            
+            pickedImage.draw(in: CGRect(x: 0, y: 0, width: 224, height: 224))
+            
+            let newImage = UIGraphicsGetImageFromCurrentImageContext()!
+            
+            UIGraphicsEndImageContext()
+           
+            // Store the new image in the form of a pixel buffer
+           let attrs = [kCVPixelBufferCGImageCompatibilityKey:
+           kCFBooleanTrue, kCVPixelBufferCGBitmapContextCompatibilityKey:
+           kCFBooleanTrue] as CFDictionary
+            
+            var pixelBuffer : CVPixelBuffer?
+            
+            let status = CVPixelBufferCreate(kCFAllocatorDefault, Int(newImage.size.width), Int(newImage.size.height), kCVPixelFormatType_32ARGB, attrs, &pixelBuffer)
+            
+            guard (status == kCVReturnSuccess) else {
+                return
+                }
+            
+            // Convert all the pixels in image into device dependent RGB color space
+            CVPixelBufferLockBaseAddress(pixelBuffer!, CVPixelBufferLockFlags(rawValue: 0))
+            
+            let pixelData = CVPixelBufferGetBaseAddress(pixelBuffer!)
+            
+            let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
+            
+            // Store pixel data in CGCContext - helps modify properties of image's pixels
+            let context = CGContext(data: pixelData, width:Int(newImage.size.width), height: Int(newImage.size.height), bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(pixelBuffer!), space: rgbColorSpace, bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue)
+            
+            // Scale the image
+            context?.translateBy(x: 0, y: newImage.size.height)
+            context?.scaleBy(x: 1.0, y: -1.0)
+            
+            // Update final image buffer
+            UIGraphicsPushContext(context!)
+            
+            newImage.draw(in: CGRect(x: 0, y: 0, width: newImage.size.width, height: newImage.size.height))
+            
+            UIGraphicsPopContext()
+            
+            CVPixelBufferUnlockBaseAddress(pixelBuffer!, CVPixelBufferLockFlags(rawValue: 0))
         }
          
         // 5. Method called when user cancels the picker

@@ -49,6 +49,13 @@ for machine learning</string>
                                 <rect key="frame" x="16" y="310" width="349" height="378"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6mz-9f-oEi">
+                                <rect key="frame" x="169" y="746" width="42" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -58,6 +65,7 @@ for machine learning</string>
                         <outlet property="MultiLineLabel2" destination="1xO-Jf-z1z" id="qJV-rF-ohJ"/>
                         <outlet property="UI_Image_View" destination="CQ5-7j-qd8" id="PZe-nk-tcc"/>
                         <outlet property="btn" destination="3Hp-5x-FgQ" id="TyG-Sx-jfc"/>
+                        <outlet property="classifier" destination="6mz-9f-oEi" id="tPP-BG-DEY"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
